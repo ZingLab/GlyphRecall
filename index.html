@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Glyph Recall — a calm memory test</title>
+  <link rel="icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="favicon.ico" />
+  <meta name="description" content="Glyph Recall — a calm short-term memory test by Robert Allen of ZingLab. Remember a small set of glyphs, then find them again as rounds get busier. No timer; anonymous gameplay." />
+  <meta name="keywords" content="memory test, short-term memory, cognitive training, glyphs, brain training, Robert Allen, ZingLab" />
+  <meta name="author" content="Robert Allen — ZingLab" />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#E9EFF0" />
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Glyph Recall — a calm memory test" />
+  <meta property="og:description" content="A gentle short-term memory test by Robert Allen of ZingLab. Remember glyphs, complete levels, and track progress in a soothing interface." />
+  <meta property="og:image" content="index.jpg" />
+  <meta property="og:image:alt" content="Glyph Recall — sample glyphs" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Glyph Recall" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Glyph Recall — a calm memory test" />
+  <meta name="twitter:description" content="A gentle short-term memory test by Robert Allen of ZingLab." />
+  <meta name="twitter:image" content="index.jpg" />
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Glyph Recall",
+    "author": { "@type": "Person", "name": "Robert Allen", "affiliation": "ZingLab" },
+    "description": "A calm short-term memory test focusing on glyph recall.",
+    "image": "index.jpg"
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#E9EFF0;
+    --surface:#FFFFFF;
+    --surface-2:#F4F8F8;
+    --ink:#15242C;
+    --ink-soft:#52626A;
+    --ink-faint:#8A99A0;
+    --accent:#0F766E;
+    --accent-deep:#0B564F;
+    --accent-tint:#D6EBE8;
+    --amber:#D9962F;
+    --amber-tint:#F6E6C8;
+    --hairline:#D7E0E1;
+    --radius:16px;
+    --radius-sm:11px;
+    --shadow:0 1px 2px rgba(21,36,44,.05), 0 8px 28px rgba(21,36,44,.07);
+    --font:'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --display:'Space Grotesk', 'Inter', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #F2F7F7 0%, var(--bg) 60%) fixed;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .footer {
+    text-align: center;
+    margin: 10px auto;
+  }
+  .wrap{
+    max-width:680px;
+    margin:0 auto;
+    padding:28px 20px 64px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;
+    margin:6px 0 26px;
+  }
+  .brand .dot{
+    width:26px;height:26px;border-radius:8px;
+    border: 1px solid darkgray;
+    display:grid;place-items:center;color:#fff;font-size:15px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+  }
+  .brand b{font-family:var(--display);font-weight:600;letter-spacing:-.01em;font-size:17px}
+  .brand span{color:var(--ink-faint);font-size:13px;margin-left:auto}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px;
+  }
+  h1{font-family:var(--display);font-weight:600;letter-spacing:-.02em;line-height:1.12;margin:0 0 6px;font-size:clamp(24px,5.5vw,30px)}
+  .sub{color:var(--ink-soft);margin:0 0 22px;font-size:15px}
+  .eyebrow{
+    font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 8px;
+  }
+
+  label.field{display:block;margin:0 0 16px}
+  .field > span{display:block;font-weight:600;font-size:14px;margin-bottom:7px}
+  input[type=text],input[type=number],select{
+    width:100%;font-family:var(--font);font-size:16px;color:var(--ink);
+    background:var(--surface-2);
+    border:1.5px solid var(--hairline);border-radius:var(--radius-sm);
+    padding:12px 13px;transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus,select:focus{
+    outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-tint);
+  }
+  .hint{color:var(--ink-faint);font-size:12.5px;margin-top:6px}
+
+  fieldset{border:0;margin:0 0 16px;padding:0}
+  fieldset > legend{font-weight:600;font-size:14px;margin-bottom:9px;padding:0}
+  .diffgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .diffgrid label{
+    position:relative;display:flex;flex-direction:column;gap:1px;
+    border:1.5px solid var(--hairline);border-radius:var(--radius-sm);
+    padding:12px 14px;cursor:pointer;background:var(--surface-2);
+    transition:border-color .15s, background .15s;
+  }
+  .diffgrid label .t{font-weight:600;font-size:15px}
+  .diffgrid label .d{font-size:12.5px;color:var(--ink-soft)}
+  .diffgrid input{position:absolute;opacity:0;inset:0;cursor:pointer}
+  .diffgrid label:has(input:checked){border-color:var(--accent);background:var(--accent-tint)}
+  .diffgrid label:has(input:focus-visible){box-shadow:0 0 0 3px var(--accent-tint)}
+
+  .disclaimer{
+    display:flex;gap:11px;align-items:flex-start;
+    background:var(--surface-2);border:1px solid var(--hairline);
+    border-radius:var(--radius-sm);padding:13px 14px;margin:4px 0 20px;
+  }
+  .disclaimer input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex:none}
+  .disclaimer label{font-size:13.5px;color:var(--ink-soft);line-height:1.45}
+
+  .btn{
+    appearance:none;font-family:var(--font);font-weight:600;font-size:16px;
+    border-radius:var(--radius-sm);padding:14px 20px;cursor:pointer;
+    border:1.5px solid transparent;transition:transform .08s, background .15s, box-shadow .15s;
+    width:100%;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(15,118,110,.28)}
+  .btn-primary:hover{background:var(--accent-deep)}
+  .btn-primary:disabled{background:#B9C7C8;box-shadow:none;cursor:not-allowed;color:#fff}
+  .btn-ghost{background:var(--surface);color:var(--ink);border-color:var(--hairline)}
+  .btn-ghost:hover{background:var(--surface-2)}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
+  .btnrow{display:flex;gap:10px;margin-top:14px}
+  .btnrow .btn{width:auto;flex:1}
+
+  .icon {
+    width: 80%;
+    height: 80%;
+    max-width: 24px;
+  }
+
+  /* progress meter */
+  .meter{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .meter .lvl{
+    font-family:var(--display);font-weight:600;font-size:14px;color:var(--accent-deep);
+    background:var(--accent-tint);padding:5px 11px;border-radius:999px;white-space:nowrap;
+  }
+  .meter .track{flex:1;height:8px;border-radius:999px;background:var(--hairline);overflow:hidden}
+  .meter .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-deep));width:0;transition:width .3s ease}
+  .meter .step{font-size:13px;color:var(--ink-soft);white-space:nowrap}
+
+  /* memorize cards */
+  .memo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(116px,1fr));gap:12px;margin:8px 0 22px}
+  .memo{
+    border:1.5px solid var(--hairline);border-radius:var(--radius);
+    background:var(--surface-2);padding:18px 10px;text-align:center;
+    animation:rise .45s ease both;
+  }
+  .memo .gl{font-size:42px;line-height:1;display:block;margin-bottom:8px}
+  .memo .nm{font-weight:600;font-size:15px}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* recall grid */
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:6px 0 18px}
+  .tile{
+    appearance:none;border:1.5px solid var(--hairline);background:var(--surface);
+    border-radius:13px;padding:9px 4px 8px;cursor:pointer;text-align:center;
+    transition:transform .08s, border-color .12s, background .12s, box-shadow .12s;
+    display:flex;flex-direction:column;align-items:center;gap:3px;min-height:74px;justify-content:center;
+    position:relative;
+  }
+  .tile .gl{font-size:clamp(22px,6vw,30px);line-height:1}
+  .tile .nm{font-size:clamp(9px,2.4vw,12px);font-weight:600;color:var(--ink-soft)}
+  .tile:hover:not(:disabled){border-color:var(--accent)}
+  .tile:active:not(:disabled){transform:scale(.96)}
+  .tile:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
+  .tile.sel{border-color:var(--accent);background:var(--accent-tint);box-shadow:inset 0 0 0 1.5px var(--accent)}
+  .tile.sel::after{
+    content:"✓";position:absolute;top:3px;right:5px;font-size:11px;font-weight:700;color:var(--accent-deep)
+  }
+  .tile:disabled{cursor:default}
+  .tile.correct{border-color:var(--accent);background:var(--accent-tint);box-shadow:inset 0 0 0 1.5px var(--accent)}
+  .tile.missed{border-color:var(--amber);background:var(--amber-tint)}
+  .tile.missed::after{content:"·";position:absolute;top:0;right:6px;font-size:20px;color:var(--amber)}
+  .tile.wrong{opacity:.45}
+  .tile.wrong::after{content:"✕";position:absolute;top:3px;right:5px;font-size:11px;color:var(--ink-faint)}
+
+  .counter{font-size:14px;color:var(--ink-soft);text-align:center;margin-bottom:14px}
+  .counter b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  /* math */
+  .prompt{
+    font-family:var(--display);font-weight:600;letter-spacing:-.01em;
+    text-align:center;font-size:clamp(40px,12vw,64px);margin:14px 0 18px;
+    color:var(--ink);font-variant-numeric:tabular-nums;
+  }
+  .answer{max-width:220px;margin:0 auto 4px}
+  .answer input{text-align:center;font-size:24px;font-family:var(--display);font-weight:600;padding:14px}
+  .feedback{text-align:center;font-size:14px;font-weight:600;min-height:20px;margin:10px 0 2px}
+  .feedback.ok{color:var(--accent)}
+  .feedback.no{color:var(--amber)}
+
+  /* result */
+  .result{text-align:center;padding:8px 4px}
+  .result .go{font-family:var(--display);font-weight:600;letter-spacing:.02em;text-transform:uppercase;font-size:13px;color:var(--ink-faint);margin-bottom:14px}
+  .result .num{
+    font-family:var(--display);font-weight:700;line-height:.9;
+    font-size:clamp(76px,24vw,120px);
+    background:linear-gradient(160deg,var(--accent),var(--accent-deep) 55%, var(--amber));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    margin:0;
+  }
+  .result .lvlword{font-size:15px;color:var(--ink-soft);margin:2px 0 4px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .result .ondiff{font-size:18px;margin:0 0 22px;color:var(--ink)}
+  .result .ondiff b{color:var(--accent-deep)}
+  .bookmark{font-size:13.5px;color:var(--ink-soft);background:var(--surface-2);border:1px dashed var(--hairline);border-radius:var(--radius-sm);padding:11px 14px;margin:0 0 16px}
+  .bookmark kbd{font-family:var(--font);background:#fff;border:1px solid var(--hairline);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:12px;font-weight:600}
+
+  .screen[hidden]{display:none}
+  .fade{animation:fade .35s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+  @media (max-width:420px){
+    .wrap{padding:18px 13px 48px}
+    .card{padding:18px}
+    .diffgrid{grid-template-columns:repeat(2,1fr)}
+    .grid{gap:6px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+  }
+
+  /* end-game bar */
+  .end-bar{text-align:center;margin-top:16px}
+  .btn-end{
+    appearance:none;background:none;border:none;font-family:var(--font);
+    font-size:13px;color:var(--ink-faint);cursor:pointer;padding:6px 10px;
+    border-radius:var(--radius-sm);text-decoration:underline;text-underline-offset:3px;
+    transition:color .15s;
+  }
+  .btn-end:hover{color:var(--ink-soft)}
+  .btn-end:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-tint)}
+
+  /* Progressive option spans full width of the 2-col grid */
+  .diffgrid label.full-span{
+    grid-column:1 / -1;
+    flex-flow: wrap;
+    align-items:center;
+    gap:12px
+  }
+  .full-span .prog-badge{
+    font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    background:linear-gradient(90deg,var(--accent),var(--amber));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    white-space:nowrap;margin-left:auto;flex-shrink:0;
+  }
+
+  /* new glyph added highlight in all-glyphs grid */
+  .memo.memo-new{
+    border-color:var(--amber);
+    box-shadow:0 0 0 1.5px var(--amber),0 4px 16px rgba(217,150,47,.15);
+  }
+
+  /* win block on result screen */
+  .win-block{
+    background:linear-gradient(135deg,var(--accent-tint),var(--amber-tint));
+    border:1px solid var(--hairline);border-radius:var(--radius-sm);
+    padding:14px 16px;margin:0 0 16px;text-align:left;
+  }
+  .win-block p{margin:0 0 8px;font-size:14px;color:var(--ink-soft);line-height:1.5}
+  .win-block p:last-child{margin:0}
+  .win-block a{color:var(--accent-deep);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <span class="dot" aria-hidden="true"><img class="icon" src="icon_sm.png" alt="Zinglab icon"/></span>
+    <b>Glyph Recall</b>
+    <span id="fbState">offline mode</span>
+  </div>
+
+  <!-- ===================== INTAKE ===================== -->
+  <section id="screen-intake" class="screen card fade" tabindex="-1" aria-labelledby="intake-h">
+    <p class="eyebrow">Before we begin</p>
+    <h1 id="intake-h">A calm test of short-term memory</h1>
+    <p class="sub">Remember a small set of glyphs, then find them again as the rounds get busier. Go at your own pace — there's no timer.</p>
+
+    <label class="field"><span>First name</span>
+      <input id="f-name" type="text" autocomplete="off" placeholder="e.g. Sam" maxlength="40" />
+    </label>
+
+    <label class="field"><span>Age</span>
+      <input id="f-age" type="number" inputmode="numeric" min="5" max="120" placeholder="e.g. 34" />
+    </label>
+
+    <label class="field"><span>Why are you taking the test?</span>
+      <select id="f-reason">
+        <option value="" disabled selected>Choose one…</option>
+        <option value="testing">Memory testing</option>
+        <option value="improving">Improving my memory</option>
+        <option value="rehab">Rehabilitation / recovery support</option>
+        <option value="fun">Just for fun</option>
+      </select>
+    </label>
+
+    <fieldset>
+      <legend>Difficulty</legend>
+      <div class="diffgrid" id="f-diff">
+        <label><input type="radio" name="diff" value="easy" /><span class="t">Easy</span><span class="d">3 glyphs</span></label>
+        <label><input type="radio" name="diff" value="medium" /><span class="t">Medium</span><span class="d">5 glyphs</span></label>
+        <label><input type="radio" name="diff" value="hard" /><span class="t">Hard</span><span class="d">7 glyphs</span></label>
+        <label><input type="radio" name="diff" value="extra" /><span class="t">Extra Hard</span><span class="d">9 glyphs</span></label>
+        <label class="full-span"><input type="radio" name="diff" value="progressive" /><span class="t">Progressive</span><span class="d">Starts at 3 glyphs · one added every 3 levels · win at level 75</span><span class="prog-badge">↑ Challenge</span></label>
+      </div>
+    </fieldset>
+
+    <div class="disclaimer">
+      <input id="f-ack" type="checkbox" />
+      <label for="f-ack">I understand Glyph Recall is for general wellness and entertainment, and is <b>not medical advice</b>, diagnosis, or treatment.</label>
+    </div>
+
+    <button id="startBtn" class="btn btn-primary" disabled>Start the test</button>
+    <p class="hint" style="text-align:center;margin-top:12px">Your answers are stored anonymously. No account, no email.</p>
+  </section>
+
+  <!-- ===================== MEMORIZE ===================== -->
+  <section id="screen-memo" class="screen card" hidden tabindex="-1" aria-labelledby="memo-h">
+    <p class="eyebrow">Step 1 — Memorize</p>
+    <h1 id="memo-h">Remember these glyphs</h1>
+    <p class="sub" id="memo-sub">Take all the time you need. When you're ready, start the test and find them in the grid.</p>
+    <div class="memo-grid" id="memoGrid" aria-live="polite"></div>
+    <button id="memoBtn" class="btn btn-primary">I've got them — start</button>
+    <div class="end-bar"><button class="btn-end">End the game early</button></div>
+  </section>
+
+  <!-- ===================== MATH ===================== -->
+  <section id="screen-math" class="screen card" hidden tabindex="-1" aria-labelledby="math-h">
+    <div class="meter">
+      <span class="lvl" id="math-lvl">Level 1</span>
+      <div class="track"><div class="fill" id="math-fill"></div></div>
+      <span class="step" id="math-step">Question 1 of 1</span>
+    </div>
+    <h1 id="math-h" class="sr-only">Solve the problem</h1>
+    <p class="sub" style="text-align:center">A quick problem to keep your mind busy. Right or wrong, you'll move on.</p>
+    <div class="prompt" id="math-prompt" aria-live="polite">7 + 5</div>
+    <div class="answer">
+      <input id="math-input" type="number" inputmode="numeric" placeholder="Answer" aria-label="Your answer" />
+    </div>
+    <div class="feedback" id="math-feedback" aria-live="polite"></div>
+    <button id="mathBtn" class="btn btn-primary" style="margin-top:8px">Submit answer</button>
+    <div class="end-bar"><button class="btn-end">End the game early</button></div>
+  </section>
+
+  <!-- ===================== RECALL ===================== -->
+  <section id="screen-recall" class="screen card" hidden tabindex="-1" aria-labelledby="recall-h">
+    <div class="meter">
+      <span class="lvl" id="recall-lvl">Level 1</span>
+      <div class="track"><div class="fill" id="recall-fill" style="width:100%"></div></div>
+      <span class="step">Memory check</span>
+    </div>
+    <h1 id="recall-h" style="font-size:clamp(20px,5vw,25px)">Find your glyphs</h1>
+    <p class="sub" id="recall-sub">Select the <b>3</b> glyphs you memorized.</p>
+    <div class="grid" id="recallGrid" role="group" aria-label="Glyph grid"></div>
+    <p class="counter" id="recall-counter">Selected <b>0</b> of <b>3</b></p>
+    <button id="recallBtn" class="btn btn-primary" disabled>Check my answer</button>
+    <button id="recallContinue" class="btn btn-primary" hidden>Continue</button>
+    <div class="end-bar"><button class="btn-end">End the game early</button></div>
+  </section>
+
+  <!-- ===================== NEW GLYPH (Progressive) ===================== -->
+  <section id="screen-newglyph" class="screen card" hidden tabindex="-1" aria-labelledby="newglyph-h">
+    <p class="eyebrow" id="newglyph-eyebrow">New glyph added!</p>
+    <h1 id="newglyph-h">Remember this one too</h1>
+    <p class="sub" id="newglyph-sub">A new glyph joins your set. Take a moment before the next check.</p>
+    <div class="memo-grid" id="newGlyphGrid" aria-live="polite"></div>
+    <p class="eyebrow" style="margin-top:6px">Your full set</p>
+    <div class="memo-grid" id="allGlyphGrid" aria-live="polite"></div>
+    <button id="newGlyphBtn" class="btn btn-primary">Got it — let's go</button>
+    <div class="end-bar"><button class="btn-end">End the game early</button></div>
+  </section>
+
+  <!-- ===================== RESULT ===================== -->
+  <section id="screen-result" class="screen card" hidden tabindex="-1" aria-labelledby="result-h">
+    <div class="result">
+      <p class="go" id="result-h">Game Over</p>
+      <p class="num" id="result-num">0</p>
+      <p class="lvlword" id="result-lvlword">levels passed</p>
+      <p class="ondiff">on <b id="result-diff">Medium</b> difficulty</p>
+      <div id="win-block" class="win-block" hidden>
+        <p>You've completed all 75 levels of Progressive mode. That's an exceptional feat of memory.</p>
+        <p>The team behind Glyph Recall would love to hear from you — <a href="mailto:glyphwinner@zinglab.com?subject=I%20won%20Glyph%20Recall!&body=I%20just%20completed%20all%2075%20levels%20of%20Progressive%20mode%20in%20Glyph%20Recall!">write to glyphwinner@zinglab.com</a>.</p>
+      </div>
+      <div class="bookmark">Want another go? <b>Bookmark this page</b> — press <kbd id="bm-key">Ctrl</kbd>+<kbd>D</kbd> — and you can try again any time.</div>
+      <div class="btnrow">
+        <button id="shareBtn" class="btn btn-primary">Share your result</button>
+        <button id="againBtn" class="btn btn-ghost">Play again</button>
+      </div>
+      <p class="feedback ok" id="share-note" style="margin-top:12px"></p>
+    </div>
+  </section>
+
+  <section class="card fade footer">
+    <a href="https://zinglab.com/?=glyph" target="_blank">
+      <img class="icon" src="icon_sm.png" alt="Zinglab icon">
+    </a>
+    <p class="sub">&copy;
+      <script>document.write(new Date().getFullYear())</script> ZingLab. All rights reserved.
+    </p>
+  </section>
+</div>
+
+<script type="module">
+/* =========================================================================
+   Glyph Recall — game logic
+   Single file, no build step. Firebase is OPTIONAL: fill in firebaseConfig
+   below to enable anonymous logging; without it the app runs fully and
+   logs to the console instead.
+   ========================================================================= */
+
+/* ---- Tunable rules -------------------------------------------------------
+   PASS_THRESHOLD: advance while accuracy is STRICTLY GREATER THAN this.
+   To use "80% or more" instead, change `> PASS_THRESHOLD` to `>= PASS_THRESHOLD`
+   in passesCheck(). See the PRD §7 for what this means per difficulty. */
+const PASS_THRESHOLD = 0.80;
+const passesCheck = (correct, total) => (correct / total) > PASS_THRESHOLD;
+
+const WIN_LEVEL   = 75;
+const GLYPH_COUNT = { easy:3, medium:5, hard:7, extra:9 };
+const DIFF_LABEL  = { easy:"Easy", medium:"Medium", hard:"Hard", extra:"Extra Hard", progressive:"Progressive" };
+
+/* 25 glyphs — symbol + word, chosen to be hard to confuse */
+const GLYPHS = [
+  {id:"zebra",g:"🦓",n:"Zebra"}, {id:"can",g:"🥫",n:"Can"}, {id:"apple",g:"🍎",n:"Apple"},
+  {id:"anchor",g:"⚓",n:"Anchor"}, {id:"bell",g:"🔔",n:"Bell"}, {id:"cactus",g:"🌵",n:"Cactus"},
+  {id:"crown",g:"👑",n:"Crown"}, {id:"diamond",g:"💎",n:"Diamond"}, {id:"drum",g:"🥁",n:"Drum"},
+  {id:"feather",g:"🪶",n:"Feather"}, {id:"guitar",g:"🎸",n:"Guitar"}, {id:"hammer",g:"🔨",n:"Hammer"},
+  {id:"hut",g:"🛖",n:"Hut"}, {id:"key",g:"🔑",n:"Key"}, {id:"leaf",g:"🍁",n:"Leaf"},
+  {id:"moon",g:"🌙",n:"Moon"}, {id:"mushroom",g:"🍄",n:"Mushroom"}, {id:"owl",g:"🦉",n:"Owl"},
+  {id:"pencil",g:"✏️",n:"Pencil"}, {id:"rocket",g:"🚀",n:"Rocket"}, {id:"star",g:"⭐",n:"Star"},
+  {id:"sun",g:"☀️",n:"Sun"}, {id:"tree",g:"🌳",n:"Tree"}, {id:"umbrella",g:"☂️",n:"Umbrella"},
+  {id:"whale",g:"🐳",n:"Whale"}
+];
+const byId = Object.fromEntries(GLYPHS.map(x => [x.id, x]));
+
+/* ---------- helpers ---------- */
+const $ = sel => document.querySelector(sel);
+const rnd = n => Math.floor(Math.random() * n);
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];} return a; }
+function sample(a,k){ return shuffle(a).slice(0,k); }
+
+/* ---------- session state ---------- */
+const S = {
+  sessionId: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random())),
+  name:"", age:null, reason:"", difficulty:"medium", glyphCount:5,
+  targets:[],           // array of glyph ids to remember
+  level:1,              // level currently being attempted
+  levelsPassed:0,
+  intfTotal:0, intfDone:0,  // interference questions this level
+  selected:new Set(),
+  curMath:null,
+  checkN:0, mathN:0
+};
+
+/* ===================== Firebase (optional) ===================== */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let FB = { ready:false };
+async function initFirebase(){
+  if(String(firebaseConfig.apiKey).startsWith("YOUR_")) {
+    console.info("[Glyph Recall] Firebase not configured — running in offline mode. Fill in firebaseConfig to enable anonymous logging.");
+    return;
+  }
+  try{
+    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const fsMod  = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    const auMod  = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const app = appMod.initializeApp(firebaseConfig);
+    const db  = fsMod.getFirestore(app);
+    await auMod.signInAnonymously(auMod.getAuth(app));
+    FB = { ready:true, db, ...fsMod };
+    $("#fbState").textContent = "anonymous · connected";
+    console.info("[Glyph Recall] Firebase connected (anonymous).");
+  }catch(e){
+    console.warn("[Glyph Recall] Firebase disabled:", e.message || e);
+  }
+}
+async function fbCreateSession(){
+  if(!FB.ready) { console.info("[log] session", {id:S.sessionId, ...sessionPayload()}); return; }
+  try{
+    await FB.setDoc(FB.doc(FB.db, "sessions", S.sessionId), {
+      ...sessionPayload(), createdAt: FB.serverTimestamp()
+    });
+  }catch(e){ console.warn("session write failed", e); }
+}
+async function fbFinish(){
+  const data = { levelsPassed:S.levelsPassed };
+  if(!FB.ready){ console.info("[log] finish", data); return; }
+  try{
+    await FB.setDoc(FB.doc(FB.db, "sessions", S.sessionId),
+      { ...data, endedAt: FB.serverTimestamp() }, { merge:true });
+  }catch(e){ console.warn("finish write failed", e); }
+}
+async function fbLog(sub, payload){
+  if(!FB.ready){ console.info(`[log] ${sub}`, payload); return; }
+  try{
+    await FB.addDoc(FB.collection(FB.db, "sessions", S.sessionId, sub), {
+      ...payload, at: FB.serverTimestamp()
+    });
+  }catch(e){ console.warn(sub+" write failed", e); }
+}
+function sessionPayload(){
+  return {
+    firstName:S.name, age:S.age, reason:S.reason,
+    difficulty:S.difficulty, glyphCount:S.glyphCount, targetGlyphIds:S.targets
+  };
+}
+
+/* ===================== screen routing ===================== */
+const SCREENS = ["intake","memo","newglyph","math","recall","result"];
+function show(name){
+  for(const s of SCREENS){
+    const el = document.getElementById("screen-"+s);
+    el.hidden = (s !== name);
+  }
+  const active = document.getElementById("screen-"+name);
+  active.classList.remove("fade"); void active.offsetWidth; active.classList.add("fade");
+  active.focus();
+  window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
+}
+
+/* ===================== INTAKE ===================== */
+const nameEl=$("#f-name"), ageEl=$("#f-age"), reasonEl=$("#f-reason"),
+      ackEl=$("#f-ack"), startBtn=$("#startBtn");
+function validateIntake(){
+  const name = nameEl.value.trim();
+  const age = parseInt(ageEl.value,10);
+  const reason = reasonEl.value;
+  const diff = document.querySelector('input[name="diff"]:checked');
+  const ok = name.length>0 && Number.isFinite(age) && age>=5 && age<=120 &&
+             reason && diff && ackEl.checked;
+  startBtn.disabled = !ok;
+}
+[nameEl,ageEl,reasonEl,ackEl].forEach(el=>{
+  el.addEventListener("input", validateIntake);
+  el.addEventListener("change", validateIntake);
+});
+$("#f-diff").addEventListener("change", validateIntake);
+
+startBtn.addEventListener("click", ()=>{
+  S.name = nameEl.value.trim();
+  S.age = parseInt(ageEl.value,10);
+  S.reason = reasonEl.value;
+  S.difficulty = document.querySelector('input[name="diff"]:checked').value;
+  S.glyphCount = S.difficulty === "progressive" ? 3 : GLYPH_COUNT[S.difficulty];
+  S.targets = sample(GLYPHS.map(x=>x.id), S.glyphCount);
+  S.level = 1; S.levelsPassed = 0; S.checkN = 0; S.mathN = 0;
+  fbCreateSession();
+  renderMemorize();
+  show("memo");
+});
+
+/* ===================== MEMORIZE ===================== */
+function renderMemorize(){
+  const grid = $("#memoGrid");
+  grid.innerHTML = "";
+  S.targets.forEach((id,i)=>{
+    const x = byId[id];
+    const div = document.createElement("div");
+    div.className = "memo";
+    div.style.animationDelay = (i*70)+"ms";
+    div.innerHTML = `<span class="gl" aria-hidden="true">${x.g}</span><span class="nm">${x.n}</span>`;
+    grid.appendChild(div);
+  });
+  $("#memo-sub").innerHTML = `You'll need to find ${S.glyphCount===1?'this glyph':`these <b>${S.glyphCount}</b> glyphs`} in a grid of 25. Take your time.`;
+}
+$("#memoBtn").addEventListener("click", ()=> startLevel(S.level));
+
+/* ===================== NEW GLYPH (Progressive) ===================== */
+function renderNewGlyph(addedIds){
+  $("#newglyph-eyebrow").textContent = `Level ${S.level} — New glyph!`;
+  $("#newglyph-sub").innerHTML = `A new glyph has been added to your set. You now have <b>${S.glyphCount}</b> to remember.`;
+  // Show just the new glyph(s) large
+  const ng = $("#newGlyphGrid");
+  ng.innerHTML = "";
+  addedIds.forEach((id,i)=>{
+    const x = byId[id];
+    const div = document.createElement("div");
+    div.className = "memo";
+    div.style.animationDelay = (i*70)+"ms";
+    div.innerHTML = `<span class="gl" aria-hidden="true">${x.g}</span><span class="nm">${x.n}</span>`;
+    ng.appendChild(div);
+  });
+  // Show all current glyphs with new ones highlighted
+  const ag = $("#allGlyphGrid");
+  ag.innerHTML = "";
+  S.targets.forEach((id,i)=>{
+    const x = byId[id];
+    const isNew = addedIds.includes(id);
+    const div = document.createElement("div");
+    div.className = "memo" + (isNew ? " memo-new" : "");
+    div.style.animationDelay = (i*50)+"ms";
+    div.innerHTML = `<span class="gl" aria-hidden="true">${x.g}</span><span class="nm">${x.n}</span>`;
+    ag.appendChild(div);
+  });
+}
+$("#newGlyphBtn").addEventListener("click", ()=>{
+  if(S.intfTotal > 0){ nextMath(); show("math"); }
+  else { renderRecall(); show("recall"); }
+});
+
+/* ===================== LEVEL CONTROL ===================== */
+function progressiveGlyphCount(level){
+  // Progressive: 3 glyphs at start, +1 every 3 levels, capped at pool size
+  return Math.min(GLYPHS.length, 3 + Math.floor(level / 3));
+}
+function startLevel(L){
+  S.level = L;
+  // Progressive: check if a new glyph unlocks this level
+  if(S.difficulty === "progressive"){
+    const newCount = progressiveGlyphCount(L);
+    if(newCount > S.glyphCount){
+      const pool = GLYPHS.map(x=>x.id).filter(id => !S.targets.includes(id));
+      const added = sample(pool, newCount - S.glyphCount);
+      S.targets = [...S.targets, ...added];
+      S.glyphCount = newCount;
+      S.intfTotal = L - 1;
+      S.intfDone = 0;
+      renderNewGlyph(added);
+      show("newglyph");
+      return;
+    }
+  }
+  S.intfTotal = L - 1;     // interference questions before this level's check
+  S.intfDone = 0;
+  if(S.intfTotal > 0){ nextMath(); show("math"); }
+  else { renderRecall(); show("recall"); }
+}
+
+/* ===================== MATH (interference) ===================== */
+function makeMath(level){
+  // Levels 1–5: + and − only. Level 6+: also × and ÷.
+  const pool = level >= 6 ? ["add","sub","mul","div"] : ["add","sub"];
+  const type = pool[rnd(pool.length)];
+  let a,b,prompt,answer;
+  if(type==="add"){ a=2+rnd(18); b=2+rnd(18); prompt=`${a} + ${b} =`; answer=a+b; }
+  else if(type==="sub"){ a=2+rnd(18); b=2+rnd(a-1); prompt=`${a} − ${b} =`; answer=a-b; }
+  else if(type==="mul"){ a=2+rnd(8); b=2+rnd(8); prompt=`${a} × ${b} =`; answer=a*b; }
+  else { b=2+rnd(8); const c=2+rnd(8); a=b*c; prompt=`${a} ÷ ${b} =`; answer=c; }
+  return {prompt, answer};
+}
+function nextMath(){
+  S.curMath = makeMath(S.level);
+  $("#math-lvl").textContent = "Level "+S.level;
+  $("#math-step").textContent = `Question ${S.intfDone+1} of ${S.intfTotal}`;
+  $("#math-fill").style.width = (S.intfDone/Math.max(1,S.intfTotal)*100)+"%";
+  $("#math-prompt").textContent = S.curMath.prompt;
+  const inp = $("#math-input"); inp.value=""; inp.disabled=false;
+  $("#math-feedback").textContent="";
+  $("#mathBtn").textContent="Submit answer";
+  setTimeout(()=>inp.focus(), 60);
+}
+function submitMath(){
+  const inp = $("#math-input");
+  if(inp.value.trim()==="") { inp.focus(); return; }
+  const given = parseInt(inp.value,10);
+  const correct = given === S.curMath.answer;
+  const fb = $("#math-feedback");
+  fb.textContent = correct ? "Correct" : `That was ${S.curMath.answer} — no problem, keep going.`;
+  fb.className = "feedback " + (correct?"ok":"no");
+  inp.disabled = true;
+  S.mathN++;
+  fbLog("math", {level:S.level, prompt:S.curMath.prompt, answer:given, correct});
+  S.intfDone++;
+  $("#math-fill").style.width = (S.intfDone/Math.max(1,S.intfTotal)*100)+"%";
+  $("#mathBtn").textContent = (S.intfDone < S.intfTotal) ? "Next question" : "Continue to memory check";
+  $("#mathBtn").onclick = ()=>{
+    $("#mathBtn").onclick = null;
+    if(S.intfDone < S.intfTotal){ nextMath(); }
+    else { renderRecall(); show("recall"); }
+  };
+}
+$("#mathBtn").addEventListener("click", function handler(){
+  // first click of each question submits; subsequent behaviour set in submitMath
+  if(!$("#math-input").disabled) submitMath();
+});
+$("#math-input").addEventListener("keydown", e=>{
+  if(e.key==="Enter" && !$("#math-input").disabled){ e.preventDefault(); submitMath(); }
+});
+
+/* ===================== RECALL (memory check) ===================== */
+function renderRecall(){
+  S.selected = new Set();
+  S.checkN++;
+  const grid = $("#recallGrid");
+  grid.innerHTML = "";
+  $("#recall-lvl").textContent = "Level "+S.level;
+  $("#recall-sub").innerHTML = `Select the <b>${S.glyphCount}</b> glyph${S.glyphCount>1?"s":""} you memorized.`;
+  updateCounter();
+  $("#recallBtn").hidden=false; $("#recallBtn").disabled=true;
+  $("#recallContinue").hidden=true;
+
+  shuffle(GLYPHS).forEach(x=>{
+    const b = document.createElement("button");
+    b.className="tile"; b.type="button";
+    b.dataset.id=x.id;
+    b.setAttribute("aria-pressed","false");
+    b.setAttribute("aria-label",x.n);
+    b.innerHTML = `<span class="gl" aria-hidden="true">${x.g}</span><span class="nm">${x.n}</span>`;
+    b.addEventListener("click", ()=>toggleTile(b,x.id));
+    grid.appendChild(b);
+  });
+}
+function toggleTile(btn,id){
+  if(S.selected.has(id)){
+    S.selected.delete(id); btn.classList.remove("sel"); btn.setAttribute("aria-pressed","false");
+  } else {
+    if(S.selected.size >= S.glyphCount) return;   // cap at N
+    S.selected.add(id); btn.classList.add("sel"); btn.setAttribute("aria-pressed","true");
+  }
+  updateCounter();
+}
+function updateCounter(){
+  $("#recall-counter").innerHTML = `Selected <b>${S.selected.size}</b> of <b>${S.glyphCount}</b>`;
+  $("#recallBtn").disabled = (S.selected.size !== S.glyphCount);
+}
+$("#recallBtn").addEventListener("click", gradeRecall);
+
+function gradeRecall(){
+  const targetSet = new Set(S.targets);
+  let correct = 0;
+  // reveal feedback on every tile, lock the grid
+  document.querySelectorAll("#recallGrid .tile").forEach(btn=>{
+    const id = btn.dataset.id;
+    const isTarget = targetSet.has(id);
+    const isSel = S.selected.has(id);
+    btn.disabled = true;
+    btn.classList.remove("sel");
+    if(isTarget && isSel){ btn.classList.add("correct"); correct++; }
+    else if(isTarget && !isSel){ btn.classList.add("missed"); }
+    else if(!isTarget && isSel){ btn.classList.add("wrong"); }
+  });
+  const accuracy = correct / S.glyphCount;
+  const passed = passesCheck(correct, S.glyphCount);
+  $("#recall-counter").innerHTML =
+    `You found <b>${correct}</b> of <b>${S.glyphCount}</b> · ${Math.round(accuracy*100)}%`;
+  fbLog("checks", {level:S.level, accuracy, passed, selectedIds:[...S.selected], interferenceBefore:S.intfTotal});
+
+  if(passed) S.levelsPassed = S.level;
+
+  $("#recallBtn").hidden = true;
+  const cont = $("#recallContinue");
+  cont.hidden = false;
+  cont.textContent = passed ? "Great — continue" : "See your result";
+  cont.focus();
+  cont.onclick = ()=>{
+    cont.onclick = null;
+    if(passed){
+      if(S.difficulty === "progressive" && S.level >= WIN_LEVEL){ winGame(); }
+      else { startLevel(S.level + 1); }
+    } else {
+      endGame();
+    }
+  };
+}
+
+/* ===================== RESULT ===================== */
+function endGame(){
+  fbFinish();
+  $("#result-h").textContent = "Game Over";
+  $("#win-block").hidden = true;
+  $("#result-num").textContent = S.levelsPassed;
+  $("#result-lvlword").textContent = S.levelsPassed===1 ? "level passed" : "levels passed";
+  $("#result-diff").textContent = DIFF_LABEL[S.difficulty];
+  $("#share-note").textContent = "";
+  if(navigator.platform && /Mac|iPhone|iPad/.test(navigator.platform)) $("#bm-key").textContent = "⌘";
+  show("result");
+}
+function winGame(){
+  S.levelsPassed = WIN_LEVEL;
+  fbFinish();
+  $("#result-h").textContent = "You Won!";
+  $("#win-block").hidden = false;
+  $("#result-num").textContent = WIN_LEVEL;
+  $("#result-lvlword").textContent = "levels completed";
+  $("#result-diff").textContent = "Progressive";
+  $("#share-note").textContent = "";
+  if(navigator.platform && /Mac|iPhone|iPad/.test(navigator.platform)) $("#bm-key").textContent = "⌘";
+  show("result");
+}
+$("#againBtn").addEventListener("click", ()=>{
+  // Return to the difficulty selector so the player can choose a new mode
+  S.sessionId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random()));
+  show("intake");
+});
+/* ===================== END GAME EARLY (all screens) ===================== */
+document.querySelectorAll(".btn-end").forEach(btn => btn.addEventListener("click", endGame));
+
+$("#shareBtn").addEventListener("click", async ()=>{
+  const isWin = S.difficulty === "progressive" && S.levelsPassed >= WIN_LEVEL;
+  const text = isWin
+    ? `I won Glyph Recall — all ${WIN_LEVEL} levels of Progressive mode completed!`
+    : `I passed ${S.levelsPassed} level${S.levelsPassed===1?"":"s"} on ${DIFF_LABEL[S.difficulty]} in Glyph Recall.`;
+  const url = location.href;
+  const note = $("#share-note");
+  try{
+    if(navigator.share){ await navigator.share({title:"Glyph Recall", text, url}); note.textContent="Shared. Nice work."; }
+    else { await navigator.clipboard.writeText(`${text} ${url}`); note.textContent="Result copied to your clipboard."; }
+  }catch(e){
+    try{ await navigator.clipboard.writeText(`${text} ${url}`); note.textContent="Result copied to your clipboard."; }
+    catch(_){ note.textContent = text; }
+  }
+});
+
+/* ===================== boot ===================== */
+initFirebase();
+validateIntake();
+show("intake");
+</script>
+</body>
+</html>
