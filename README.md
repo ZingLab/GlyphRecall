@@ -4,9 +4,9 @@
 
 Glyph Recall is a simple browser game built to train and test short-term memory, working memory, and cognitive recall. Memorize a small set of glyphs (a symbol + a word), then find them again in a grid — while the game gets a little harder each round.
 
-[Glyph Recall](https://glyph.zinglab.com/?=github)
+[Try Glyph Recall by ZingLab](https://glyph.zinglab.com/?=github)
 
-![Glyph Recall — intake screen](https://glyph.zinglab.com/index.jpg)
+![Glyph Recall — intake screen](https://glyph.zinglab.com/assets/sm_index.jpg)
 *Screenshot: starting a session*
 
 ---
@@ -20,7 +20,7 @@ Glyph Recall is a simple browser game built to train and test short-term memory,
 
 This progressive build-up is the whole idea: short-term memory and working memory get sharper the same way muscles do, by gradually increasing the load rather than jumping straight to the hardest version. A few extra seconds of arithmetic interference, one more glyph to track — small increases, repeated, add up.
 
-![Glyph Recall — memorize screen](https://glyph.zinglab.com/start.jpg)
+![Glyph Recall — memorize screen](https://glyph.zinglab.com/assets/sm_begin.jpg)
 *Screenshot: memorizing your glyph set*
 
 ---
@@ -30,7 +30,7 @@ This progressive build-up is the whole idea: short-term memory and working memor
 - **Progressive** — starts small and adds one new glyph every few levels, so the memory load grows steadily as you go.
 - **More Progressive** — a bigger jump for people who want a faster ramp and a tougher long-term challenge.
 
-Both are designed to be approachable at the start and genuinely challenging by the end — good for a quick memory check, for regular practice over time, or as a low-stress cognitive exercise.
+Both are approachable at the start and challenging by the end — good for a quick memory check, for regular practice over time, or as a low-stress cognitive exercise.
 
 ---
 
@@ -48,7 +48,7 @@ Glyph Recall is built for general wellness and entertainment. It's not a medical
 
 Play anonymously — no account, no email, no login. Nothing personally identifying is collected.
 
-![Glyph Recall — result screen](https://glyph.zinglab.com/done.jpg)
+![Glyph Recall — result screen](https://glyph.zinglab.com/assets/sm_done_easy_10.jpg)
 *Screenshot: a finished session*
 
 ---
@@ -57,4 +57,4 @@ Play anonymously — no account, no email, no login. Nothing personally identify
 
 Open the app, pick a mode, and see how far your memory can stretch.
 
-[Glyph Recall](https://glyph.zinglab.com/?=github)
+[Try Glyph Recall by ZingLab](https://glyph.zinglab.com/?=github)

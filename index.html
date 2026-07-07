@@ -264,6 +264,22 @@
   .pb-list li.new .sc{color:var(--amber)}
   .pb-list li.new .sc::after{content:" ★";font-size:11px}
 
+  /* leaderboard blocks (read-only, top scores per difficulty) */
+  .lb-section{margin-top:8px}
+  .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:520px){ .lb-grid{grid-template-columns:1fr} }
+  .lb-board{
+    background:var(--surface-2);border:1px solid var(--hairline);
+    border-radius:var(--radius-sm);padding:14px 16px;margin:0 0 16px;text-align:left;
+  }
+  .lb-board .lb-title{font-weight:600;font-size:13px;margin:0 0 8px;color:var(--ink-soft);letter-spacing:.03em;text-transform:uppercase}
+  .lb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+  .lb-list li{display:flex;justify-content:space-between;font-size:14px}
+  .lb-list li .rk{color:var(--ink-faint);width:20px;flex:none}
+  .lb-list li .lv{flex:1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lb-list li .sc{font-weight:700;color:var(--accent-deep);font-variant-numeric:tabular-nums}
+  .lb-empty{font-size:13px;color:var(--ink-faint);margin:0}
+
   .screen[hidden]{display:none}
   .fade{animation:fade .35s ease both}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -408,6 +424,25 @@
 
     <button id="startBtn" class="btn btn-primary" disabled>Start the test</button>
     <p class="hint" style="text-align:center;margin-top:12px">Your answers are stored anonymously. No account, no email.</p>
+
+    <!-- Leaderboards: read-only, top scores per Progressive mode. Lives inside
+         the intake screen so it's shown pre-game and hidden automatically by
+         show() once a session starts, then reappears on "Play again". -->
+    <div class="lb-section">
+      <p class="eyebrow" style="margin-top:24px">Leaderboards</p>
+      <div class="lb-grid">
+        <div class="lb-board" id="lb-progressive">
+          <p class="lb-title">Progressive</p>
+          <ol class="lb-list"></ol>
+          <p class="lb-empty" hidden>No scores yet — be the first.</p>
+        </div>
+        <div class="lb-board" id="lb-progressive2">
+          <p class="lb-title">More Progressive</p>
+          <ol class="lb-list"></ol>
+          <p class="lb-empty" hidden>No scores yet — be the first.</p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ===================== MEMORIZE ===================== -->
@@ -482,6 +517,13 @@
       <div id="pb-block" class="pb-block" hidden>
         <p class="pb-title">Your best — <span id="pb-diff-label">Medium</span></p>
         <ol class="pb-list" id="pb-list"></ol>
+      </div>
+
+      <!-- Leaderboard for the difficulty just played (read-only, top scores) -->
+      <div id="lb-result" class="lb-board" hidden>
+        <p class="lb-title">Leaderboard — <span id="lb-result-label">Progressive</span></p>
+        <ol class="lb-list"></ol>
+        <p class="lb-empty" hidden>No scores yet — be the first.</p>
       </div>
 
       <div class="bookmark">Want another go? <b>Bookmark this page</b> — press <kbd id="bm-key">Ctrl</kbd>+<kbd>D</kbd> — and you can try again any time.</div>
@@ -612,7 +654,7 @@ const S = {
   intfTotal:0, intfDone:0,  // interference questions this level
   selected:new Set(),
   curMath:null,
-  checkN:0, mathN:0
+  checkN:0, mathN:0, mathCorrect:0
 };
 
 /* ===================== Firebase ===================== */
@@ -652,6 +694,7 @@ function sessionPayload(){
     reason: S.reason,
     difficulty: S.difficulty,
     levelsPassed: S.levelsPassed,
+    mathCorrect: S.mathCorrect,
     glyphId: $("#f-glyphId").value || ""
   };
 }
@@ -671,6 +714,100 @@ async function fbSubmitSession(){
     await FB.setDoc(FB.doc(FB.db, "sessions", S.sessionId), data);
     lastSubmitAt = now;
   }catch(e){ console.warn("session write failed", e); }
+}
+
+/* ===================== Leaderboard (Firestore, read-only) ===================== */
+const LB_LIMIT = 10;
+const LB_CACHE_MS = 30_000; // avoid refetching the same board within this window
+const lbCache = {}; // { [difficulty]: { at, rows } }
+
+/* Reads the top N sessions for a difficulty, ranked by mathCorrect desc
+   (more math questions answered correctly = higher score), with the most
+   recent session breaking ties among equal scores. Returns [] on any
+   failure (no Firebase, no permissions, no network, no index) rather than
+   throwing — the leaderboard is decorative and must never block gameplay
+   or the result screen. Always logs why on failure. */
+async function fetchLeaderboard(difficulty){
+  const cached = lbCache[difficulty];
+  if(cached && (Date.now() - cached.at) < LB_CACHE_MS) return cached.rows;
+
+  if(!FB.ready){
+    console.info(`[Glyph Recall] Leaderboard (${difficulty}) skipped — Firebase not connected.`);
+    return [];
+  }
+  try{
+    const q = FB.query(
+      FB.collection(FB.db, "sessions"),
+      FB.where("difficulty", "==", difficulty),
+      FB.orderBy("mathCorrect", "desc"),
+      FB.orderBy("createdAt", "desc"),
+      FB.limit(LB_LIMIT)
+    );
+    const snap = await FB.getDocs(q);
+    const rows = snap.docs.map(d => d.data());
+    lbCache[difficulty] = { at: Date.now(), rows };
+    return rows;
+  }catch(e){
+    if(e.code === "failed-precondition"){
+      console.warn(
+        `[Glyph Recall] Leaderboard (${difficulty}) fetch failed — likely a missing Firestore composite index ` +
+        `(this query filters on "difficulty" and sorts by "mathCorrect" then "createdAt", which needs one). ` +
+        `Firestore's error usually includes a direct "create it here" link — see below:`,
+        e.message || e
+      );
+    } else if(e.code === "permission-denied"){
+      console.warn(`[Glyph Recall] Leaderboard (${difficulty}) fetch failed — permission denied. Check that Firestore rules allow "read" on the sessions collection.`, e.message || e);
+    } else {
+      console.warn(`[Glyph Recall] Leaderboard (${difficulty}) fetch failed:`, e.code || "", e.message || e);
+    }
+    return [];
+  }
+}
+
+/* Renders rows into any container with .lb-list / .lb-empty children,
+   e.g. <div class="lb-board"><ol class="lb-list"></ol><p class="lb-empty" hidden></p></div>.
+   Used for both the main-page leaderboards and the result-screen leaderboard.
+   Score shown is mathCorrect (math questions answered correctly); levelsPassed
+   is shown alongside as supporting context, since a bare count of correct
+   answers means little without knowing how far the run went. */
+function renderLeaderboardInto(container, rows){
+  const ol = container.querySelector(".lb-list");
+  const empty = container.querySelector(".lb-empty");
+  ol.innerHTML = "";
+  if(!rows.length){
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+  rows.forEach((row, i)=>{
+    const li = document.createElement("li");
+    const name = (row.firstName || "Anonymous").slice(0, 10);
+    const correct = row.mathCorrect ?? 0;
+    const levels = row.levelsPassed ?? 0;
+    li.innerHTML = `<span class="rk">${i+1}.</span><span class="lv">${name} · ${levels} lvl${levels===1?"":"s"}</span><span class="sc">${correct}</span>`;
+    ol.appendChild(li);
+  });
+}
+
+async function loadMainPageLeaderboards(){
+  const boards = [
+    { difficulty:"progressive",  el: $("#lb-progressive") },
+    { difficulty:"progressive2", el: $("#lb-progressive2") }
+  ];
+  for(const { difficulty, el } of boards){
+    if(!el) continue;
+    const rows = await fetchLeaderboard(difficulty);
+    renderLeaderboardInto(el, rows);
+  }
+}
+
+async function loadResultLeaderboard(difficulty){
+  const el = $("#lb-result");
+  if(!el) return;
+  $("#lb-result-label").textContent = DIFF_LABEL[difficulty];
+  el.hidden = false;
+  const rows = await fetchLeaderboard(difficulty);
+  renderLeaderboardInto(el, rows);
 }
 
 /* ===================== Local personal bests ===================== */
@@ -758,7 +895,7 @@ startBtn.addEventListener("click", ()=>{
   S.difficulty = document.querySelector('input[name="diff"]:checked').value;
   S.glyphCount = isProgressiveMode(S.difficulty) ? PROGRESSIVE_MODES[S.difficulty].start : GLYPH_COUNT[S.difficulty];
   S.targets = sample(GLYPHS.map(x=>x.id), S.glyphCount);
-  S.level = 1; S.levelsPassed = 0; S.checkN = 0; S.mathN = 0;
+  S.level = 1; S.levelsPassed = 0; S.checkN = 0; S.mathN = 0; S.mathCorrect = 0;
   renderMemorize();
   show("memo");
 });
@@ -902,6 +1039,7 @@ function submitMath(){
   fb.className = "feedback " + (correct?"ok":"no");
   inp.disabled = true;
   S.mathN++;
+  if(correct) S.mathCorrect++;
   S.intfDone++;
   $("#math-fill").style.width = (S.intfDone/Math.max(1,S.intfTotal)*100)+"%";
   $("#mathBtn").textContent = (S.intfDone < S.intfTotal) ? "Next question" : "Continue to memory check";
@@ -1001,6 +1139,7 @@ function finishCommon(){
   const list = bests[S.difficulty] || [];
   const justPlayed = list.find(e => e.levelsPassed === S.levelsPassed);
   renderPersonalBest(S.difficulty, justPlayed ? justPlayed.at : null);
+  loadResultLeaderboard(S.difficulty);
 }
 function endGame(){
   $("#result-h").textContent = "Game Over";
@@ -1059,9 +1198,9 @@ $("#shareBtn").addEventListener("click", async ()=>{
 });
 
 /* ===================== boot ===================== */
-initFirebase();
 validateIntake();
 show("intake");
+initFirebase().finally(loadMainPageLeaderboards);
 </script>
 </body>
 </html>
