@@ -168,6 +168,11 @@
     max-width: 24px;
   }
 
+  input.invalid{
+    border-color:#D64545 !important;
+    box-shadow:0 0 0 3px rgba(214,69,69,.12) !important;
+  }
+
   /* progress meter */
   .meter{display:flex;align-items:center;gap:12px;margin-bottom:20px}
   .meter .lvl{
@@ -245,6 +250,20 @@
   .bookmark{font-size:13.5px;color:var(--ink-soft);background:var(--surface-2);border:1px dashed var(--hairline);border-radius:var(--radius-sm);padding:11px 14px;margin:0 0 16px}
   .bookmark kbd{font-family:var(--font);background:#fff;border:1px solid var(--hairline);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:12px;font-weight:600}
 
+  /* personal best block */
+  .pb-block{
+    background:var(--surface-2);border:1px solid var(--hairline);
+    border-radius:var(--radius-sm);padding:14px 16px;margin:0 0 16px;text-align:left;
+  }
+  .pb-block .pb-title{font-weight:600;font-size:13px;margin:0 0 8px;color:var(--ink-soft);letter-spacing:.03em;text-transform:uppercase}
+  .pb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+  .pb-list li{display:flex;justify-content:space-between;font-size:14px}
+  .pb-list li .rk{color:var(--ink-faint);width:20px;flex:none}
+  .pb-list li .lv{flex:1;color:var(--ink)}
+  .pb-list li .sc{font-weight:700;color:var(--accent-deep);font-variant-numeric:tabular-nums}
+  .pb-list li.new .sc{color:var(--amber)}
+  .pb-list li.new .sc::after{content:" ★";font-size:11px}
+
   .screen[hidden]{display:none}
   .fade{animation:fade .35s ease both}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -301,13 +320,43 @@
   .win-block p{margin:0 0 8px;font-size:14px;color:var(--ink-soft);line-height:1.5}
   .win-block p:last-child{margin:0}
   .win-block a{color:var(--accent-deep);font-weight:600}
+
+  button#music-toggle{
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  }
 </style>
 </head>
 <body>
+<audio id="bg-music" autoplay loop muted title="Toggle Music by Dmitrii Spis from Pixabay">
+  <source src="nastelbom-calm-ambient-295786.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
 <div class="wrap">
   <div class="brand">
-    <span class="dot" aria-hidden="true"><img class="icon" src="icon_sm.png" alt="Zinglab icon"/></span>
+    <img class="icon" src="icon_sm.png" alt="Zinglab icon"/>
     <b>Glyph Recall</b>
+    <button id="music-toggle" aria-label="Toggle background music" aria-pressed="false" title="Toggle music. Music provided by Dmitrii Spis from Pixabay.">
+      <!-- Speaker ON icon -->
+      <svg id="icon-on" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+      </svg>
+
+      <!-- Speaker OFF (muted/crossed-out) icon -->
+      <svg id="icon-off" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <line x1="23" y1="9" x2="17" y2="15"></line>
+        <line x1="17" y1="9" x2="23" y2="15"></line>
+      </svg>
+    </button>
     <span id="fbState">offline mode</span>
   </div>
 
@@ -318,11 +367,11 @@
     <p class="sub">Remember a small set of glyphs, then find them again as the rounds get busier. Go at your own pace — there's no timer.</p>
 
     <label class="field"><span>First name</span>
-      <input id="f-name" type="text" autocomplete="off" placeholder="e.g. Sam" maxlength="40" />
+      <input id="f-name" type="text" autocomplete="on" placeholder="e.g. Sam" maxlength="10" />
     </label>
 
     <label class="field"><span>Age</span>
-      <input id="f-age" type="number" inputmode="numeric" min="5" max="120" placeholder="e.g. 34" />
+      <input id="f-age" type="number" step="1" inputmode="numeric" min="10" max="99" maxlength="2" placeholder="e.g. 34" />
     </label>
 
     <label class="field"><span>Why are you taking the test?</span>
@@ -345,6 +394,10 @@
         <label class="full-span"><input type="radio" name="diff" value="progressive" /><span class="t">Progressive</span><span class="d">Starts at 3 glyphs · one added every 3 levels · win at level 75</span><span class="prog-badge">↑ Challenge</span></label>
       </div>
     </fieldset>
+
+    <!-- Honeypot: real users never see or fill this. Any value here fails Firestore validation. -->
+    <input id="f-glyphId" type="text" name="glyphId" autocomplete="off" tabindex="-1" aria-hidden="true"
+           style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
 
     <div class="disclaimer">
       <input id="f-ack" type="checkbox" />
@@ -422,6 +475,13 @@
         <p>You've completed all 75 levels of Progressive mode. That's an exceptional feat of memory.</p>
         <p>The team behind Glyph Recall would love to hear from you — <a href="mailto:glyphwinner@zinglab.com?subject=I%20won%20Glyph%20Recall!&body=I%20just%20completed%20all%2075%20levels%20of%20Progressive%20mode%20in%20Glyph%20Recall!">write to glyphwinner@zinglab.com</a>.</p>
       </div>
+
+      <!-- Personal bests (local, per-browser) -->
+      <div id="pb-block" class="pb-block" hidden>
+        <p class="pb-title">Your best — <span id="pb-diff-label">Medium</span></p>
+        <ol class="pb-list" id="pb-list"></ol>
+      </div>
+
       <div class="bookmark">Want another go? <b>Bookmark this page</b> — press <kbd id="bm-key">Ctrl</kbd>+<kbd>D</kbd> — and you can try again any time.</div>
       <div class="btnrow">
         <button id="shareBtn" class="btn btn-primary">Share your result</button>
@@ -452,13 +512,44 @@
   gtag('config', 'G-V72N6TW489');
 </script>
 
+<!-- Background music toggle -->
+<script>
+  const audio = document.getElementById('bg-music');
+  const btn = document.getElementById('music-toggle');
+  const iconOn = document.getElementById('icon-on');
+  const iconOff = document.getElementById('icon-off');
 
+  let playing = false; // starts muted
+
+  btn.addEventListener('click', () => {
+    if (playing) {
+      audio.muted = true;
+      iconOn.style.display = 'none';
+      iconOff.style.display = 'block';
+      btn.setAttribute('aria-pressed', 'false');
+      playing = false;
+    } else {
+      audio.muted = false;
+      audio.play().catch(() => {});
+      iconOn.style.display = 'block';
+      iconOff.style.display = 'none';
+      btn.setAttribute('aria-pressed', 'true');
+      playing = true;
+    }
+  });
+</script>
+
+<!-- Game logic -->
 <script type="module">
 /* =========================================================================
    Glyph Recall — game logic
    Single file, no build step. Firebase is OPTIONAL: fill in firebaseConfig
    below to enable anonymous logging; without it the app runs fully and
    logs to the console instead.
+
+   Firestore write pattern: ONE write per session, at completion (pass/fail/
+   win/early-end), containing the final tally. No mid-game logging. Writes
+   are client-side rate-limited to 1 per 60s (see SUBMIT_COOLDOWN_MS).
    ========================================================================= */
 
 /* ---- Tunable rules -------------------------------------------------------
@@ -471,6 +562,14 @@ const passesCheck = (correct, total) => (correct / total) > PASS_THRESHOLD;
 const WIN_LEVEL   = 75;
 const GLYPH_COUNT = { easy:3, medium:5, hard:7, extra:9 };
 const DIFF_LABEL  = { easy:"Easy", medium:"Medium", hard:"Hard", extra:"Extra Hard", progressive:"Progressive" };
+
+/* Rate limit: minimum time between Firestore submission writes, per browser tab/session. */
+const SUBMIT_COOLDOWN_MS = 60_000;
+let lastSubmitAt = 0;
+
+/* Local personal-best storage */
+const PB_STORAGE_KEY = "glyphRecallBests_v1";
+const PB_MAX_PER_DIFF = 5;
 
 /* 25 glyphs — symbol + word, chosen to be hard to confuse */
 const GLYPHS = [
@@ -505,14 +604,14 @@ const S = {
   checkN:0, mathN:0
 };
 
-/* ===================== Firebase (optional) ===================== */
+/* ===================== Firebase ===================== */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCNim4OtxydD-y6dcnL6VOur48adDm1Mto",
+  authDomain: "glyphrecall.firebaseapp.com",
+  projectId: "glyphrecall",
+  storageBucket: "glyphrecall.firebasestorage.app",
+  messagingSenderId: "133661450617",
+  appId: "1:133661450617:web:8e80ea51ac3b92177a0fa8"
 };
 let FB = { ready:false };
 async function initFirebase(){
@@ -521,9 +620,9 @@ async function initFirebase(){
     return;
   }
   try{
-    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-    const fsMod  = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-    const auMod  = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const appMod = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js");
+    const fsMod  = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+    const auMod  = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js");
     const app = appMod.initializeApp(firebaseConfig);
     const db  = fsMod.getFirestore(app);
     await auMod.signInAnonymously(auMod.getAuth(app));
@@ -534,35 +633,80 @@ async function initFirebase(){
     console.warn("[Glyph Recall] Firebase disabled:", e.message || e);
   }
 }
-async function fbCreateSession(){
-  if(!FB.ready) { console.info("[log] session", {id:S.sessionId, ...sessionPayload()}); return; }
-  try{
-    await FB.setDoc(FB.doc(FB.db, "sessions", S.sessionId), {
-      ...sessionPayload(), createdAt: FB.serverTimestamp()
-    });
-  }catch(e){ console.warn("session write failed", e); }
-}
-async function fbFinish(){
-  const data = { levelsPassed:S.levelsPassed };
-  if(!FB.ready){ console.info("[log] finish", data); return; }
-  try{
-    await FB.setDoc(FB.doc(FB.db, "sessions", S.sessionId),
-      { ...data, endedAt: FB.serverTimestamp() }, { merge:true });
-  }catch(e){ console.warn("finish write failed", e); }
-}
-async function fbLog(sub, payload){
-  if(!FB.ready){ console.info(`[log] ${sub}`, payload); return; }
-  try{
-    await FB.addDoc(FB.collection(FB.db, "sessions", S.sessionId, sub), {
-      ...payload, at: FB.serverTimestamp()
-    });
-  }catch(e){ console.warn(sub+" write failed", e); }
-}
+
 function sessionPayload(){
   return {
-    firstName:S.name, age:S.age, reason:S.reason,
-    difficulty:S.difficulty, glyphCount:S.glyphCount, targetGlyphIds:S.targets
+    firstName: S.name,
+    age: S.age,
+    reason: S.reason,
+    difficulty: S.difficulty,
+    levelsPassed: S.levelsPassed,
+    glyphId: $("#f-glyphId").value || ""
   };
+}
+
+/* Single write, at completion only. Silently skipped if under the cooldown
+   or if Firebase isn't configured — gameplay and the result screen are
+   never blocked by this. */
+async function fbSubmitSession(){
+  const now = Date.now();
+  if(now - lastSubmitAt < SUBMIT_COOLDOWN_MS){
+    console.info("[Glyph Recall] Submission skipped (rate limit).");
+    return;
+  }
+  const data = { ...sessionPayload(), createdAt: FB.ready ? FB.serverTimestamp() : new Date().toISOString() };
+  if(!FB.ready){ console.info("[log] session", data); return; }
+  try{
+    await FB.setDoc(FB.doc(FB.db, "sessions", S.sessionId), data);
+    lastSubmitAt = now;
+  }catch(e){ console.warn("session write failed", e); }
+}
+
+/* ===================== Local personal bests ===================== */
+function loadBests(){
+  try{
+    const raw = localStorage.getItem(PB_STORAGE_KEY);
+    if(!raw) return {};
+    const parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === "object") ? parsed : {};
+  }catch(e){
+    console.warn("Could not read local bests:", e);
+    return {};
+  }
+}
+function saveBests(bests){
+  try{ localStorage.setItem(PB_STORAGE_KEY, JSON.stringify(bests)); }
+  catch(e){ console.warn("Could not save local bests:", e); }
+}
+/* Records a completed run; returns {list, isNewEntry} for the given difficulty,
+   where list is the top PB_MAX_PER_DIFF scores (desc) with a flag on the
+   just-added entry (if it made the cut). */
+function recordScore(difficulty, levelsPassed){
+  const bests = loadBests();
+  const list = Array.isArray(bests[difficulty]) ? bests[difficulty] : [];
+  const entry = { levelsPassed, at: Date.now() };
+  const updated = [...list, entry]
+    .sort((a,b)=> b.levelsPassed - a.levelsPassed)
+    .slice(0, PB_MAX_PER_DIFF);
+  bests[difficulty] = updated;
+  saveBests(bests);
+  const madeCut = updated.some(e => e.at === entry.at && e.levelsPassed === entry.levelsPassed);
+  return { list: updated, isNewEntry: madeCut };
+}
+function renderPersonalBest(difficulty, justPlayedAt){
+  const { list } = { list: (loadBests()[difficulty] || []) };
+  const block = $("#pb-block");
+  const ol = $("#pb-list");
+  ol.innerHTML = "";
+  if(!list.length){ block.hidden = true; return; }
+  $("#pb-diff-label").textContent = DIFF_LABEL[difficulty];
+  list.forEach((entry, i)=>{
+    const li = document.createElement("li");
+    if(entry.at === justPlayedAt) li.classList.add("new");
+    li.innerHTML = `<span class="rk">${i+1}.</span><span class="lv">${entry.levelsPassed} level${entry.levelsPassed===1?"":"s"}</span><span class="sc">${entry.levelsPassed}</span>`;
+    ol.appendChild(li);
+  });
+  block.hidden = false;
 }
 
 /* ===================== screen routing ===================== */
@@ -586,7 +730,7 @@ function validateIntake(){
   const age = parseInt(ageEl.value,10);
   const reason = reasonEl.value;
   const diff = document.querySelector('input[name="diff"]:checked');
-  const ok = name.length>0 && Number.isFinite(age) && age>=5 && age<=120 &&
+  const ok = name.length>0 && Number.isFinite(age) && age>=10 && age<=99 &&
              reason && diff && ackEl.checked;
   startBtn.disabled = !ok;
 }
@@ -604,10 +748,37 @@ startBtn.addEventListener("click", ()=>{
   S.glyphCount = S.difficulty === "progressive" ? 3 : GLYPH_COUNT[S.difficulty];
   S.targets = sample(GLYPHS.map(x=>x.id), S.glyphCount);
   S.level = 1; S.levelsPassed = 0; S.checkN = 0; S.mathN = 0;
-  fbCreateSession();
   renderMemorize();
   show("memo");
 });
+
+ /* ---- live input filtering + validity styling for Name and Age ---- */
+function filterNameInput(e){
+  // letters, spaces, hyphens, apostrophes only — blocks digits/symbols as typed
+  const cleaned = e.target.value.replace(/[^a-zA-Z '-]/g, "");
+  if(cleaned !== e.target.value) e.target.value = cleaned;
+}
+function filterAgeInput(e){
+  // digits only — blocks letters, decimals, minus signs, "e" (JS number quirk), etc.
+  const cleaned = e.target.value.replace(/[^0-9]/g, "");
+  if(cleaned !== e.target.value) e.target.value = cleaned;
+}
+function markValidity(el, isValid){
+  el.classList.toggle("invalid", !isValid);
+}
+function checkNameValidity(){
+  const val = nameEl.value.trim();
+  markValidity(nameEl, val.length > 0 && val.length <= 10);
+}
+function checkAgeValidity(){
+  const val = ageEl.value.trim();
+  if(val === ""){ markValidity(ageEl, false); return; }
+  const age = parseInt(val, 10);
+  markValidity(ageEl, Number.isFinite(age) && age >= 10 && age <= 99);
+}
+
+nameEl.addEventListener("input", ()=>{ filterNameInput({target:nameEl}); checkNameValidity(); validateIntake(); });
+ageEl.addEventListener("input", ()=>{ filterAgeInput({target:ageEl}); checkAgeValidity(); validateIntake(); });
 
 /* ===================== MEMORIZE ===================== */
 function renderMemorize(){
@@ -719,7 +890,6 @@ function submitMath(){
   fb.className = "feedback " + (correct?"ok":"no");
   inp.disabled = true;
   S.mathN++;
-  fbLog("math", {level:S.level, prompt:S.curMath.prompt, answer:given, correct});
   S.intfDone++;
   $("#math-fill").style.width = (S.intfDone/Math.max(1,S.intfTotal)*100)+"%";
   $("#mathBtn").textContent = (S.intfDone < S.intfTotal) ? "Next question" : "Continue to memory check";
@@ -793,7 +963,6 @@ function gradeRecall(){
   const passed = passesCheck(correct, S.glyphCount);
   $("#recall-counter").innerHTML =
     `You found <b>${correct}</b> of <b>${S.glyphCount}</b> · ${Math.round(accuracy*100)}%`;
-  fbLog("checks", {level:S.level, accuracy, passed, selectedIds:[...S.selected], interferenceBefore:S.intfTotal});
 
   if(passed) S.levelsPassed = S.level;
 
@@ -814,26 +983,34 @@ function gradeRecall(){
 }
 
 /* ===================== RESULT ===================== */
+function finishCommon(){
+  fbSubmitSession();
+  const { isNewEntry } = recordScore(S.difficulty, S.levelsPassed);
+  const bests = loadBests();
+  const list = bests[S.difficulty] || [];
+  const justPlayed = list.find(e => e.levelsPassed === S.levelsPassed);
+  renderPersonalBest(S.difficulty, justPlayed ? justPlayed.at : null);
+}
 function endGame(){
-  fbFinish();
   $("#result-h").textContent = "Game Over";
   $("#win-block").hidden = true;
   $("#result-num").textContent = S.levelsPassed;
   $("#result-lvlword").textContent = S.levelsPassed===1 ? "level passed" : "levels passed";
   $("#result-diff").textContent = DIFF_LABEL[S.difficulty];
   $("#share-note").textContent = "";
+  finishCommon();
   if(navigator.platform && /Mac|iPhone|iPad/.test(navigator.platform)) $("#bm-key").textContent = "⌘";
   show("result");
 }
 function winGame(){
   S.levelsPassed = WIN_LEVEL;
-  fbFinish();
   $("#result-h").textContent = "You Won!";
   $("#win-block").hidden = false;
   $("#result-num").textContent = WIN_LEVEL;
   $("#result-lvlword").textContent = "levels completed";
   $("#result-diff").textContent = "Progressive";
   $("#share-note").textContent = "";
+  finishCommon();
   if(navigator.platform && /Mac|iPhone|iPad/.test(navigator.platform)) $("#bm-key").textContent = "⌘";
   show("result");
 }
