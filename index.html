@@ -142,7 +142,6 @@
     display:flex;gap:11px;align-items:flex-start;
     background:var(--surface-2);border:1px solid var(--hairline);
     border-radius:var(--radius-sm);padding:13px 14px;margin:4px 0 20px;
-    font-size: x-small;
   }
   .disclaimer input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex:none}
   .disclaimer label{font-size:13.5px;color:var(--ink-soft);line-height:1.45}
@@ -387,8 +386,8 @@
     <fieldset>
       <legend>Difficulty</legend>
       <div class="diffgrid" id="f-diff">
-        <label class="full-span"><input type="radio" name="diff" value="progressive" checked /><span class="t">Progressive</span><span class="d">Starts at 3 glyphs · one added every 3 levels · win at level 75</span><span class="prog-badge">↑ Challenge</span></label>
-        <label class="full-span"><input type="radio" name="diff" value="progressive2" /><span class="t">More Progressive</span><span class="d">Starts at 6 glyphs · two added every 3 levels · win at 24 glyphs</span><span class="prog-badge">↑ Challenge</span></label>
+        <label class="full-span"><input type="radio" name="diff" value="progressive" checked /><span class="t">Progressive</span><span class="d">Starts at 3 glyphs · one added every 3 levels</span></label>
+        <label class="full-span"><input type="radio" name="diff" value="progressive2" /><span class="t">More Progressive</span><span class="d">Starts at 6 glyphs · two added every 3 levels</span><span class="prog-badge">↑ Challenge</span></label>
         <!-- Kept for internal testing; hidden from players for now. Logic below still supports these. -->
         <!--
         <label><input type="radio" name="diff" value="easy" /><span class="t">Easy</span><span class="d">3 glyphs</span></label>
@@ -475,8 +474,8 @@
       <p class="lvlword" id="result-lvlword">levels passed</p>
       <p class="ondiff">on <b id="result-diff">Medium</b> difficulty</p>
       <div id="win-block" class="win-block" hidden>
-        <p>You've completed all levels of Glyph Recall. That's an exceptional feat of memory.</p>
-        <p>The team behind Glyph Recall would love to hear from you — <a href="mailto:glyphwinner@zinglab.com?subject=I%20won%20Glyph%20Recall!&body=I%20just%20completed%20all%2075%20levels%20of%20Progressive%20mode%20in%20Glyph%20Recall!">write to glyphwinner@zinglab.com</a>.</p>
+        <p id="win-message">You've mastered all 24 glyphs. That's an exceptional feat of memory.</p>
+        <p>The team behind Glyph Recall would love to hear from you — <a id="win-mailto" href="mailto:glyphwinner@zinglab.com?subject=I%20won%20Glyph%20Recall!&body=I%20just%20mastered%20all%2024%20glyphs%20in%20Glyph%20Recall!">write to glyphwinner@zinglab.com</a>.</p>
       </div>
 
       <!-- Personal bests (local, per-browser) -->
@@ -562,16 +561,15 @@
 const PASS_THRESHOLD = 0.80;
 const passesCheck = (correct, total) => (correct / total) > PASS_THRESHOLD;
 
-const WIN_LEVEL   = 75;
 const GLYPH_COUNT = { easy:3, medium:5, hard:7, extra:9 };
 const DIFF_LABEL  = { easy:"Easy", medium:"Medium", hard:"Hard", extra:"Extra Hard", progressive:"Progressive", progressive2:"More Progressive" };
 
 /* Progressive-family modes: each starts at `start` glyphs and adds `step`
-   new glyphs every 3 levels. "progressive" wins by reaching WIN_LEVEL;
-   "progressive2" wins as soon as `winAtGlyphCount` glyphs are in play and
-   the memory check at that count is passed. */
+   new glyphs every 3 levels. Each mode wins as soon as `winAtGlyphCount`
+   glyphs are in play and the memory check at that count is passed — this
+   is per-mode on purpose, so a future mode could use a different condition. */
 const PROGRESSIVE_MODES = {
-  progressive:  { start:3, step:1 },
+  progressive:  { start:3, step:1, winAtGlyphCount:24 },
   progressive2: { start:6, step:2, winAtGlyphCount:24 }
 };
 const isProgressiveMode = d => Object.prototype.hasOwnProperty.call(PROGRESSIVE_MODES, d);
@@ -988,9 +986,8 @@ function gradeRecall(){
   cont.onclick = ()=>{
     cont.onclick = null;
     const mode = PROGRESSIVE_MODES[S.difficulty];
-    const wonByLevel = S.difficulty === "progressive" && S.level >= WIN_LEVEL;
-    const wonByGlyphCount = mode && mode.winAtGlyphCount && S.glyphCount >= mode.winAtGlyphCount;
-    if(passed && (wonByLevel || wonByGlyphCount)){ winGame(); }
+    const won = mode && mode.winAtGlyphCount && S.glyphCount >= mode.winAtGlyphCount;
+    if(passed && won){ winGame(); }
     else if(passed){ startLevel(S.level + 1); }
     else { endGame(); }
   };
@@ -1017,15 +1014,21 @@ function endGame(){
   show("result");
 }
 function winGame(){
-  // "progressive" wins on reaching WIN_LEVEL; "progressive2" wins on reaching
-  // its glyph-count target — S.level and S.glyphCount already reflect this run.
+  // Win condition is per-mode (see PROGRESSIVE_MODES); both progressive
+  // modes currently win at a glyph count, so S.glyphCount already reflects
+  // the winning target here.
   S.levelsPassed = S.level;
+  const target = PROGRESSIVE_MODES[S.difficulty].winAtGlyphCount;
   $("#result-h").textContent = "You Won!";
   $("#win-block").hidden = false;
-  $("#result-num").textContent = S.difficulty === "progressive" ? WIN_LEVEL : S.glyphCount;
-  $("#result-lvlword").textContent = S.difficulty === "progressive" ? "levels completed" : "glyphs mastered";
+  $("#result-num").textContent = S.glyphCount;
+  $("#result-lvlword").textContent = "glyphs mastered";
   $("#result-diff").textContent = DIFF_LABEL[S.difficulty];
   $("#share-note").textContent = "";
+  $("#win-message").textContent =
+    `You've mastered all ${target} glyphs in ${DIFF_LABEL[S.difficulty]} mode. That's an exceptional feat of memory.`;
+  const mailBody = `I just mastered all ${target} glyphs in ${DIFF_LABEL[S.difficulty]} mode in Glyph Recall!`;
+  $("#win-mailto").href = `mailto:glyph@zinglab.com?subject=${encodeURIComponent("I won Glyph Recall!")}&body=${encodeURIComponent(mailBody)}`;
   finishCommon();
   if(navigator.platform && /Mac|iPhone|iPad/.test(navigator.platform)) $("#bm-key").textContent = "⌘";
   show("result");
@@ -1040,12 +1043,9 @@ document.querySelectorAll(".btn-end").forEach(btn => btn.addEventListener("click
 
 $("#shareBtn").addEventListener("click", async ()=>{
   const mode = PROGRESSIVE_MODES[S.difficulty];
-  const isWin = (S.difficulty === "progressive" && S.levelsPassed >= WIN_LEVEL) ||
-                (mode && mode.winAtGlyphCount && S.glyphCount >= mode.winAtGlyphCount && S.levelsPassed === S.level);
+  const isWin = mode && mode.winAtGlyphCount && S.glyphCount >= mode.winAtGlyphCount && S.levelsPassed === S.level;
   const text = isWin
-    ? (S.difficulty === "progressive"
-        ? `I won Glyph Recall — all ${WIN_LEVEL} levels of Progressive mode completed!`
-        : `I won Glyph Recall — mastered all ${mode.winAtGlyphCount} glyphs in More Progressive mode!`)
+    ? `I won Glyph Recall — mastered all ${mode.winAtGlyphCount} glyphs in ${DIFF_LABEL[S.difficulty]} mode!`
     : `I passed ${S.levelsPassed} level${S.levelsPassed===1?"":"s"} on ${DIFF_LABEL[S.difficulty]} in Glyph Recall.`;
   const url = location.href;
   const note = $("#share-note");
