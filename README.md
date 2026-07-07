@@ -7,6 +7,7 @@ Glyph Recall is a simple browser game built to train and test short-term memory,
 [Try Glyph Recall by ZingLab](https://glyph.zinglab.com/?=github)
 
 ![Glyph Recall — intake screen](https://glyph.zinglab.com/assets/sm_index.jpg)
+
 *Screenshot: starting a session*
 
 ---
@@ -21,6 +22,7 @@ Glyph Recall is a simple browser game built to train and test short-term memory,
 This progressive build-up is the whole idea: short-term memory and working memory get sharper the same way muscles do, by gradually increasing the load rather than jumping straight to the hardest version. A few extra seconds of arithmetic interference, one more glyph to track — small increases, repeated, add up.
 
 ![Glyph Recall — memorize screen](https://glyph.zinglab.com/assets/sm_begin.jpg)
+
 *Screenshot: memorizing your glyph set*
 
 ---
@@ -49,6 +51,7 @@ Glyph Recall is built for general wellness and entertainment. It's not a medical
 Play anonymously — no account, no email, no login. Nothing personally identifying is collected.
 
 ![Glyph Recall — result screen](https://glyph.zinglab.com/assets/sm_done_easy_10.jpg)
+
 *Screenshot: a finished session*
 
 ---
