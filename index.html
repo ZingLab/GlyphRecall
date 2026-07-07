@@ -142,6 +142,7 @@
     display:flex;gap:11px;align-items:flex-start;
     background:var(--surface-2);border:1px solid var(--hairline);
     border-radius:var(--radius-sm);padding:13px 14px;margin:4px 0 20px;
+    font-size: x-small;
   }
   .disclaimer input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex:none}
   .disclaimer label{font-size:13.5px;color:var(--ink-soft);line-height:1.45}
@@ -374,24 +375,27 @@
       <input id="f-age" type="number" step="1" inputmode="numeric" min="10" max="99" maxlength="2" placeholder="e.g. 34" />
     </label>
 
-    <label class="field"><span>Why are you taking the test?</span>
-      <select id="f-reason">
-        <option value="" disabled selected>Choose one…</option>
-        <option value="training">Memory training</option>
-        <option value="improving">Improving my memory</option>
-        <option value="rehab">Rehabilitation / recovery support</option>
-        <option value="fun">Just for fun</option>
-      </select>
-    </label>
+    <fieldset>
+      <legend>Why are you training?</legend>
+      <div class="diffgrid" id="f-reason-group">
+        <label class="full-span"><input type="radio" name="reason" value="improving"><span class="t">Improving my memory</span></label>
+        <label class="full-span"><input type="radio" name="reason" value="rehab"><span class="t">Rehab &amp; Recovery</span></label>
+        <label class="full-span"><input type="radio" name="reason" value="fun" checked><span class="t">Just for fun</span></label>
+      </div>
+    </fieldset>
 
     <fieldset>
       <legend>Difficulty</legend>
       <div class="diffgrid" id="f-diff">
+        <label class="full-span"><input type="radio" name="diff" value="progressive" checked /><span class="t">Progressive</span><span class="d">Starts at 3 glyphs · one added every 3 levels · win at level 75</span><span class="prog-badge">↑ Challenge</span></label>
+        <label class="full-span"><input type="radio" name="diff" value="progressive2" /><span class="t">More Progressive</span><span class="d">Starts at 6 glyphs · two added every 3 levels · win at 24 glyphs</span><span class="prog-badge">↑ Challenge</span></label>
+        <!-- Kept for internal testing; hidden from players for now. Logic below still supports these. -->
+        <!--
         <label><input type="radio" name="diff" value="easy" /><span class="t">Easy</span><span class="d">3 glyphs</span></label>
         <label><input type="radio" name="diff" value="medium" /><span class="t">Medium</span><span class="d">5 glyphs</span></label>
         <label><input type="radio" name="diff" value="hard" /><span class="t">Hard</span><span class="d">7 glyphs</span></label>
         <label><input type="radio" name="diff" value="extra" /><span class="t">Extra Hard</span><span class="d">9 glyphs</span></label>
-        <label class="full-span"><input type="radio" name="diff" value="progressive" /><span class="t">Progressive</span><span class="d">Starts at 3 glyphs · one added every 3 levels · win at level 75</span><span class="prog-badge">↑ Challenge</span></label>
+        -->
       </div>
     </fieldset>
 
@@ -400,8 +404,7 @@
            style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
 
     <div class="disclaimer">
-      <input id="f-ack" type="checkbox" />
-      <label for="f-ack">I understand Glyph Recall is for general wellness and entertainment, and is <b>not medical advice</b>, diagnosis, or treatment.</label>
+      <p>Glyph Recall is for general wellness and entertainment, and is <b>not medical advice</b>, diagnosis, or treatment.</p>
     </div>
 
     <button id="startBtn" class="btn btn-primary" disabled>Start the test</button>
@@ -472,7 +475,7 @@
       <p class="lvlword" id="result-lvlword">levels passed</p>
       <p class="ondiff">on <b id="result-diff">Medium</b> difficulty</p>
       <div id="win-block" class="win-block" hidden>
-        <p>You've completed all 75 levels of Progressive mode. That's an exceptional feat of memory.</p>
+        <p>You've completed all levels of Glyph Recall. That's an exceptional feat of memory.</p>
         <p>The team behind Glyph Recall would love to hear from you — <a href="mailto:glyphwinner@zinglab.com?subject=I%20won%20Glyph%20Recall!&body=I%20just%20completed%20all%2075%20levels%20of%20Progressive%20mode%20in%20Glyph%20Recall!">write to glyphwinner@zinglab.com</a>.</p>
       </div>
 
@@ -561,7 +564,17 @@ const passesCheck = (correct, total) => (correct / total) > PASS_THRESHOLD;
 
 const WIN_LEVEL   = 75;
 const GLYPH_COUNT = { easy:3, medium:5, hard:7, extra:9 };
-const DIFF_LABEL  = { easy:"Easy", medium:"Medium", hard:"Hard", extra:"Extra Hard", progressive:"Progressive" };
+const DIFF_LABEL  = { easy:"Easy", medium:"Medium", hard:"Hard", extra:"Extra Hard", progressive:"Progressive", progressive2:"More Progressive" };
+
+/* Progressive-family modes: each starts at `start` glyphs and adds `step`
+   new glyphs every 3 levels. "progressive" wins by reaching WIN_LEVEL;
+   "progressive2" wins as soon as `winAtGlyphCount` glyphs are in play and
+   the memory check at that count is passed. */
+const PROGRESSIVE_MODES = {
+  progressive:  { start:3, step:1 },
+  progressive2: { start:6, step:2, winAtGlyphCount:24 }
+};
+const isProgressiveMode = d => Object.prototype.hasOwnProperty.call(PROGRESSIVE_MODES, d);
 
 /* Rate limit: minimum time between Firestore submission writes, per browser tab/session. */
 const SUBMIT_COOLDOWN_MS = 60_000;
@@ -594,7 +607,7 @@ function sample(a,k){ return shuffle(a).slice(0,k); }
 /* ---------- session state ---------- */
 const S = {
   sessionId: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random())),
-  name:"", age:null, reason:"", difficulty:"medium", glyphCount:5,
+  name:"", age:null, reason:"", difficulty:"progressive", glyphCount:3,
   targets:[],           // array of glyph ids to remember
   level:1,              // level currently being attempted
   levelsPassed:0,
@@ -723,29 +736,29 @@ function show(name){
 }
 
 /* ===================== INTAKE ===================== */
-const nameEl=$("#f-name"), ageEl=$("#f-age"), reasonEl=$("#f-reason"),
-      ackEl=$("#f-ack"), startBtn=$("#startBtn");
+const nameEl=$("#f-name"), ageEl=$("#f-age"), startBtn=$("#startBtn");
 function validateIntake(){
   const name = nameEl.value.trim();
   const age = parseInt(ageEl.value,10);
-  const reason = reasonEl.value;
+  const reason = document.querySelector('input[name="reason"]:checked');
   const diff = document.querySelector('input[name="diff"]:checked');
   const ok = name.length>0 && Number.isFinite(age) && age>=10 && age<=99 &&
-             reason && diff && ackEl.checked;
+             reason && diff;
   startBtn.disabled = !ok;
 }
-[nameEl,ageEl,reasonEl,ackEl].forEach(el=>{
+[nameEl,ageEl].forEach(el=>{
   el.addEventListener("input", validateIntake);
   el.addEventListener("change", validateIntake);
 });
+$("#f-reason-group").addEventListener("change", validateIntake);
 $("#f-diff").addEventListener("change", validateIntake);
 
 startBtn.addEventListener("click", ()=>{
   S.name = nameEl.value.trim();
   S.age = parseInt(ageEl.value,10);
-  S.reason = reasonEl.value;
+  S.reason = document.querySelector('input[name="reason"]:checked').value;
   S.difficulty = document.querySelector('input[name="diff"]:checked').value;
-  S.glyphCount = S.difficulty === "progressive" ? 3 : GLYPH_COUNT[S.difficulty];
+  S.glyphCount = isProgressiveMode(S.difficulty) ? PROGRESSIVE_MODES[S.difficulty].start : GLYPH_COUNT[S.difficulty];
   S.targets = sample(GLYPHS.map(x=>x.id), S.glyphCount);
   S.level = 1; S.levelsPassed = 0; S.checkN = 0; S.mathN = 0;
   renderMemorize();
@@ -830,15 +843,16 @@ $("#newGlyphBtn").addEventListener("click", ()=>{
 });
 
 /* ===================== LEVEL CONTROL ===================== */
-function progressiveGlyphCount(level){
-  // Progressive: 3 glyphs at start, +1 every 3 levels, capped at pool size
-  return Math.min(GLYPHS.length, 3 + Math.floor(level / 3));
+function progressiveGlyphCount(level, difficulty){
+  // start glyphs at level 1, +step every 3 levels, capped at pool size
+  const mode = PROGRESSIVE_MODES[difficulty];
+  return Math.min(GLYPHS.length, mode.start + mode.step * Math.floor(level / 3));
 }
 function startLevel(L){
   S.level = L;
-  // Progressive: check if a new glyph unlocks this level
-  if(S.difficulty === "progressive"){
-    const newCount = progressiveGlyphCount(L);
+  // Progressive family: check if new glyphs unlock this level
+  if(isProgressiveMode(S.difficulty)){
+    const newCount = progressiveGlyphCount(L, S.difficulty);
     if(newCount > S.glyphCount){
       const pool = GLYPHS.map(x=>x.id).filter(id => !S.targets.includes(id));
       const added = sample(pool, newCount - S.glyphCount);
@@ -973,12 +987,12 @@ function gradeRecall(){
   cont.focus();
   cont.onclick = ()=>{
     cont.onclick = null;
-    if(passed){
-      if(S.difficulty === "progressive" && S.level >= WIN_LEVEL){ winGame(); }
-      else { startLevel(S.level + 1); }
-    } else {
-      endGame();
-    }
+    const mode = PROGRESSIVE_MODES[S.difficulty];
+    const wonByLevel = S.difficulty === "progressive" && S.level >= WIN_LEVEL;
+    const wonByGlyphCount = mode && mode.winAtGlyphCount && S.glyphCount >= mode.winAtGlyphCount;
+    if(passed && (wonByLevel || wonByGlyphCount)){ winGame(); }
+    else if(passed){ startLevel(S.level + 1); }
+    else { endGame(); }
   };
 }
 
@@ -1003,12 +1017,14 @@ function endGame(){
   show("result");
 }
 function winGame(){
-  S.levelsPassed = WIN_LEVEL;
+  // "progressive" wins on reaching WIN_LEVEL; "progressive2" wins on reaching
+  // its glyph-count target — S.level and S.glyphCount already reflect this run.
+  S.levelsPassed = S.level;
   $("#result-h").textContent = "You Won!";
   $("#win-block").hidden = false;
-  $("#result-num").textContent = WIN_LEVEL;
-  $("#result-lvlword").textContent = "levels completed";
-  $("#result-diff").textContent = "Progressive";
+  $("#result-num").textContent = S.difficulty === "progressive" ? WIN_LEVEL : S.glyphCount;
+  $("#result-lvlword").textContent = S.difficulty === "progressive" ? "levels completed" : "glyphs mastered";
+  $("#result-diff").textContent = DIFF_LABEL[S.difficulty];
   $("#share-note").textContent = "";
   finishCommon();
   if(navigator.platform && /Mac|iPhone|iPad/.test(navigator.platform)) $("#bm-key").textContent = "⌘";
@@ -1023,9 +1039,13 @@ $("#againBtn").addEventListener("click", ()=>{
 document.querySelectorAll(".btn-end").forEach(btn => btn.addEventListener("click", endGame));
 
 $("#shareBtn").addEventListener("click", async ()=>{
-  const isWin = S.difficulty === "progressive" && S.levelsPassed >= WIN_LEVEL;
+  const mode = PROGRESSIVE_MODES[S.difficulty];
+  const isWin = (S.difficulty === "progressive" && S.levelsPassed >= WIN_LEVEL) ||
+                (mode && mode.winAtGlyphCount && S.glyphCount >= mode.winAtGlyphCount && S.levelsPassed === S.level);
   const text = isWin
-    ? `I won Glyph Recall — all ${WIN_LEVEL} levels of Progressive mode completed!`
+    ? (S.difficulty === "progressive"
+        ? `I won Glyph Recall — all ${WIN_LEVEL} levels of Progressive mode completed!`
+        : `I won Glyph Recall — mastered all ${mode.winAtGlyphCount} glyphs in More Progressive mode!`)
     : `I passed ${S.levelsPassed} level${S.levelsPassed===1?"":"s"} on ${DIFF_LABEL[S.difficulty]} in Glyph Recall.`;
   const url = location.href;
   const note = $("#share-note");
